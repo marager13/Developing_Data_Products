@@ -1,0 +1,31 @@
+---
+title: "Developing Data Products"
+author: Marager
+output: html_document
+date: "2022-10-24"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+### What's playing on Broadway
+#### An interactive map of all the current broadway theatres and their shows
+```{r,  message=FALSE, warning=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+
+
+library(leaflet)
+
+broadway <- read.csv("Broadway Shows and Locations.csv")
+
+broadway %>%
+leaflet() %>%
+  addTiles() %>% 
+  addMarkers(lng = broadway$Longitude, lat = broadway$Latitude,  popup = paste("Theatre:", broadway$Theater, "<br>", "Now Showing:", broadway$Current.Show))
+
+```
+
+
