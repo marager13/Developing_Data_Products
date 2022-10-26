@@ -1,0 +1,58 @@
+---
+title: "Week 3"
+author: "Marager"
+date: "2022-10-25"
+output: ioslides_presentation
+---
+
+<!-- The rubric contains the following two questions: -->
+<!-- 1. Does the web page feature a date and is this date less than two months before the date that you're grading this assignment? -->
+<!-- 2. Is the web page a presentation and does it feature an interactive plot that appears to have been created with Plotly? -->
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(plotly)
+library(dplyr)
+library(stringr)
+```
+
+
+## Map of US Population in 2019
+```{r, echo=FALSE, message=FALSE}
+df <- read.csv("https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/co-est2019-alldata.csv")
+#Select only relevant columns of dataframe
+df <- df %>%
+       select("SUMLEV","REGION","DIVISION","STATE","COUNTY","STNAME","CTYNAME","POPESTIMATE2019")
+#Formatting for FIPS Code
+#Pad Sting with 0's to make the State Code a 2 digit number
+df$StateCode <- str_pad(as.character(df$STATE), 2, pad="0")
+#Pad Sting with 0's to make the county code a 3 digit number
+df$CountyCode <- str_pad(as.character(df$COUNTY), 3, pad="0")
+#create FIPS from State and County Codes
+df$FIPS <- paste(df$StateCode, df$CountyCode , sep = "")
+#this value needs to be changed because it has the n/tilda which does not convert properly from csv to r
+df[1835,7] = "Dona Ana County"
+#Create hover text 
+df$hover <- with(df, paste(CTYNAME, '<br>', "Population:", POPESTIMATE2019))
+
+
+#For County Lines
+url <- 'https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json'
+counties <- rjson::fromJSON(file=url)
+
+fig <- plot_ly() 
+fig <- fig %>% add_trace(
+  type="choroplethmapbox",
+  geojson=counties,
+  locations= df$FIPS, z= df$POPESTIMATE2019, text = df$hover, color = df$POPESTIMATE2019, 
+  colorscale="Viridis",
+  zmin=0, zmax=500000, #10039107 10050000
+  marker=list(line=list(width=0),opacity=0.5)) %>% 
+    layout(title = 'US Population in 2019 by County', mapbox=list(style="carto-positron", 
+          zoom =2,center=list(lon= -95.71, lat=37.09))
+          )
+fig
+```
+
